@@ -1,0 +1,308 @@
+/* Revision Cards — spaced-repetition drill system for Obsidian
+   Original CSS (MIT). Author: U4 Study Group, 2026.
+   System idea: question/answer alternation, recall-graded checkboxes,
+   bold left rules on list items, high-salience focus rings.
+   Metadata strip renders as a small mono card header. */
+
+:root {
+  /* Named tokens (prefix: --rv-*) */
+  --rv-card: #ffffff;
+  --rv-card-dark: #1d1f24;
+  --rv-question: #7c3aed;
+  --rv-answer: #0f766e;
+  --rv-question-dark: #a78bfa;
+  --rv-answer-dark: #2dd4bf;
+  --rv-border: #e2e4ea;
+  --rv-border-dark: #343741;
+  --rv-graded-good: #16a34a;
+  --rv-graded-hard: #d97706;
+  --rv-radius: 8px;
+  --rv-shadow: 0 1px 4px rgba(20, 24, 40, 0.10);
+  --rv-focus: #d946ef;
+  --rv-sans: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+  --rv-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+}
+
+/* ---------- Dark palette ---------- */
+.theme-dark {
+  --background-primary: var(--rv-card-dark);
+  --background-primary-alt: #17191e;
+  --background-secondary: #14161b;
+  --background-secondary-alt: #0f1115;
+  --background-modifier-border: var(--rv-border-dark);
+  --background-modifier-border-hover: #454a56;
+  --background-modifier-border-focus: var(--rv-focus);
+  --text-normal: #d4d7dd;
+  --text-muted: #9aa0ab;
+  --text-faint: #6b7280;
+  --text-accent: var(--rv-question-dark);
+  --text-accent-hover: #c4b5fd;
+  --interactive-accent: var(--rv-answer-dark);
+  --interactive-accent-hover: #5eead4;
+  --rv-card-current: var(--rv-card-dark);
+  --rv-question-current: var(--rv-question-dark);
+  --rv-answer-current: var(--rv-answer-dark);
+  --h1-color: #e5e7eb;
+  --h2-color: #d1d5db;
+  --inline-title-color: #eceef2;
+  --code-background: #191c22;
+  --code-normal: #c9ced8;
+  --table-header-background: #1a1d23;
+  --table-row-background-alt: #171a20;
+  --link-color: var(--rv-question-current);
+  --link-color-hover: #c4b5fd;
+  --link-unresolved-color: #8b93a1;
+  --nav-item-color: #b6bcc6;
+  --nav-item-background-hover: #1e2128;
+  --nav-item-background-active: #262a33;
+  --tab-text-color: #9aa0ab;
+  --tab-text-color-focused: #dfe2e8;
+  --tab-outline-color: #2e323c;
+}
+
+/* ---------- Light palette ---------- */
+.theme-light {
+  --background-primary: var(--rv-card);
+  --background-primary-alt: #f4f5f8;
+  --background-secondary: #eef0f4;
+  --background-secondary-alt: #e4e7ee;
+  --background-modifier-border: var(--rv-border);
+  --background-modifier-border-hover: #c3c8d4;
+  --background-modifier-border-focus: var(--rv-focus);
+  --text-normal: #24272e;
+  --text-muted: #5f6570;
+  --text-faint: #8f959f;
+  --text-accent: var(--rv-question);
+  --text-accent-hover: #6d28d9;
+  --interactive-accent: var(--rv-answer);
+  --interactive-accent-hover: #0b5c53;
+  --rv-card-current: var(--rv-card);
+  --rv-question-current: var(--rv-question);
+  --rv-answer-current: var(--rv-answer);
+  --h1-color: #1a1d24;
+  --h2-color: #2a2e37;
+  --inline-title-color: #14161c;
+  --code-background: #f1f2f6;
+  --code-normal: #333844;
+  --table-header-background: #eef0f5;
+  --table-row-background-alt: #f6f7fa;
+  --link-color: var(--rv-question);
+  --link-color-hover: #6d28d9;
+  --link-unresolved-color: #8b93a1;
+  --nav-item-color: #4c525e;
+  --nav-item-background-hover: #e9ebf1;
+  --nav-item-background-active: #dfe2ea;
+  --tab-text-color: #636a76;
+  --tab-text-color-focused: #1f232b;
+  --tab-outline-color: #d5d9e2;
+}
+
+/* ---------- Base ---------- */
+body {
+  --font-text-theme: var(--rv-sans);
+  --font-interface-theme: var(--rv-sans);
+  --font-monospace-theme: var(--rv-mono);
+  --inline-title-font: var(--rv-sans);
+  --bold-weight: 700;
+}
+
+/* ---------- Flashcard title: Q/A split underline ---------- */
+.inline-title {
+  border-bottom: 3px double var(--rv-border-current, var(--background-modifier-border));
+  padding-bottom: 0.25em;
+}
+.markdown-preview-view h1,
+.markdown-source-view.mod-cm6 .HyperMD-header-1 {
+  font-size: 1.42em;
+  font-weight: 800;
+  border-bottom: 2px solid var(--rv-question-current);
+  padding-bottom: 0.15em;
+}
+.markdown-preview-view h2,
+.markdown-source-view.mod-cm6 .HyperMD-header-2 {
+  font-size: 1.18em;
+  font-weight: 700;
+  color: var(--rv-question-current);
+}
+.markdown-preview-view h3,
+.markdown-source-view.mod-cm6 .HyperMD-header-3 {
+  font-size: 1.04em;
+  font-weight: 700;
+  color: var(--rv-answer-current);
+}
+/* flashcard prompt badges: every section head is a Q or an A face */
+.markdown-preview-view h2::before,
+.markdown-preview-view h3::before {
+  display: inline-block;
+  font-family: var(--rv-mono);
+  font-size: 0.6em;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--rv-card-current);
+  border-radius: 4px;
+  padding: 0.04em 0.42em;
+  margin-right: 0.5em;
+  vertical-align: 0.16em;
+}
+.markdown-preview-view h2::before { content: "Q"; background: var(--rv-question-current); }
+.markdown-preview-view h3::before { content: "A"; background: var(--rv-answer-current); }
+.markdown-preview-view h4,
+.markdown-source-view.mod-cm6 .HyperMD-header-4 {
+  font-size: 0.97em;
+  font-weight: 700;
+}
+.markdown-preview-view h5,
+.markdown-source-view.mod-cm6 .HyperMD-header-5 {
+  font-size: 0.91em;
+  font-weight: 650;
+}
+.markdown-preview-view h6,
+.markdown-source-view.mod-cm6 .HyperMD-header-6 {
+  font-family: var(--rv-mono);
+  font-size: 0.83em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+/* ---------- Q/A alternation on consecutive blockquotes ---------- */
+.markdown-rendered blockquote {
+  border-left: 4px solid var(--rv-question-current);
+  background: color-mix(in srgb, var(--rv-question-current) 7%, var(--rv-card-current));
+  border-radius: var(--rv-radius);
+  padding: 0.8em 1.1em;
+  margin: 1em 0;
+  font-style: normal;
+}
+.markdown-rendered blockquote + blockquote {
+  border-left-color: var(--rv-answer-current);
+  background: color-mix(in srgb, var(--rv-answer-current) 7%, var(--rv-card-current));
+}
+
+/* ---------- Callouts: card faces ---------- */
+.callout {
+  border: 1px solid var(--background-modifier-border);
+  border-top: 3px solid var(--rv-question-current);
+  border-radius: var(--rv-radius);
+  box-shadow: var(--rv-shadow);
+  padding: 0;
+  background: var(--background-primary-alt);
+}
+.callout-title-inner::after {
+  content: "";
+  display: inline-block;
+  width: 0.55em;
+  height: 0.55em;
+  margin-left: 0.4em;
+  border-radius: 2px;
+  vertical-align: 0.06em;
+  background: var(--rv-answer-current);
+}
+
+/* ---------- Lists: graded recall rules ---------- */
+.markdown-rendered ul > li {
+  border-left: 3px solid var(--rv-question-current);
+  padding-left: 0.7em;
+  margin: 0.3em 0;
+}
+.markdown-rendered ul > li:nth-child(even) {
+  border-left-color: var(--rv-answer-current);
+  background: color-mix(in srgb, var(--rv-answer-current) 6%, transparent);
+}
+.markdown-rendered ul > li::marker { color: var(--rv-question-current); font-weight: 700; }
+.markdown-rendered ul > li:nth-child(even)::marker { color: var(--rv-answer-current); }
+
+/* ---------- Recall-graded checkboxes ---------- */
+input[type="checkbox"] {
+  border: 2px solid var(--rv-question-current);
+  border-radius: 4px;
+  appearance: none;
+  width: 1em; height: 1em;
+  background: var(--rv-card-current);
+}
+input[type="checkbox"]:checked {
+  background: var(--rv-graded-good);
+  border-color: var(--rv-graded-good);
+}
+input[type="checkbox"]:indeterminate {
+  background: var(--rv-graded-hard);
+  border-color: var(--rv-graded-hard);
+}
+
+/* ---------- Links & chips ---------- */
+a { color: var(--link-color); text-decoration-color: color-mix(in srgb, var(--link-color) 45%, transparent); }
+a:hover { text-decoration-color: var(--link-color); }
+.markdown-rendered a.tag {
+  font-family: var(--rv-mono);
+  font-size: 0.8em;
+  border: 1px solid var(--rv-answer-current);
+  color: var(--rv-answer-current);
+  border-radius: 999px;
+  padding: 0 0.55em;
+  background: color-mix(in srgb, var(--rv-answer-current) 8%, transparent);
+}
+
+/* ---------- Code ---------- */
+code { font-family: var(--rv-mono); font-size: 0.87em; }
+.markdown-rendered :not(pre) > code {
+  background: color-mix(in srgb, var(--rv-question-current) 9%, var(--code-background));
+  padding: 0.1em 0.4em;
+  border-radius: 4px;
+}
+
+/* ---------- Tables: score sheets ---------- */
+th {
+  font-family: var(--rv-mono);
+  font-size: 0.78em;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--table-header-background);
+}
+th:first-child { color: var(--rv-question-current); }
+th:nth-child(2) { color: var(--rv-answer-current); }
+td { border-bottom: 1px solid var(--background-modifier-border); }
+tbody tr:nth-child(even) { background: var(--table-row-background-alt); }
+
+/* ---------- Metadata: card header strip ---------- */
+.metadata-container {
+  font-family: var(--rv-mono);
+  font-size: 0.8em;
+  background: var(--background-primary-alt);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--rv-radius) var(--rv-radius) 0 0;
+  border-bottom: none;
+  padding: 0.5em 0.9em;
+}
+
+/* ---------- Navigation, tabs, search, settings ---------- */
+.nav-file-title, .nav-folder-title { border-radius: 6px; }
+.workspace-tab-header-container { border-bottom: 1px solid var(--background-modifier-border); }
+.search-input-container input { border-radius: 999px; }
+button { border-radius: var(--rv-radius); }
+
+/* ---------- Focus: high-salience ring ---------- */
+:is(a, button, input, textarea, .nav-file-title, .nav-folder-title,
+    .clickable-icon, .task-list-item-checkbox, [tabindex]):focus-visible {
+  outline: 3px solid var(--rv-focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---------- Narrow windows (420px desktop reading) ---------- */
+@media (max-width: 600px) {
+  .inline-title { font-size: 1.25em; }
+  .markdown-preview-view h1,
+  .markdown-source-view.mod-cm6 .HyperMD-header-1 { font-size: 1.28em; }
+  .markdown-preview-view h2,
+  .markdown-source-view.mod-cm6 .HyperMD-header-2 { font-size: 1.1em; }
+  table { font-size: 0.9em; }
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
